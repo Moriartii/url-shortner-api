@@ -9,42 +9,52 @@ import (
 )
 
 func Create(c *gin.Context) {
-	var short_url_req shorturl.ShortUrlRequest
-	if err := c.ShouldBindJSON(&short_url_req); err != nil {
+	var shortUrlRequest shorturl.ShortUrlRequest
+	if err := c.ShouldBindJSON(&shortUrlRequest); err != nil {
 		restErr := errors.NewBadRequestError("invalid json body")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
 
-	shorted_url, err := services.ShortUrlService.CreateShortUrl(short_url_req.Url)
+	shortedUrl, err := services.ShortUrlService.CreateShortUrl(shortUrlRequest.Url)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.JSON(http.StatusCreated, shorted_url)
+	c.JSON(http.StatusCreated, shortedUrl)
 }
 
 func Information(c *gin.Context) {
-	short_url_req := shorturl.ShortUrlRequest{ShortBase32: c.Param("short_path")}
-	redirect_url, err := services.ShortUrlService.GetShortUrlByShortPath(short_url_req.ShortBase32)
+	shortUrlRequest := shorturl.ShortUrlRequest{ShortBase32: c.Param("short_path")}
+	redirectUrl, err := services.ShortUrlService.GetShortUrlByShortPath(shortUrlRequest.ShortBase32)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.JSON(http.StatusOK, redirect_url)
+	c.JSON(http.StatusOK, redirectUrl)
 }
 
 func Redirect(c *gin.Context) {
-	short_url_req := shorturl.ShortUrlRequest{ShortBase32: c.Param("short_path")}
-	redirect_url, err := services.ShortUrlService.GetShortUrlByShortPath(short_url_req.ShortBase32)
+	shortUrlRequest := shorturl.ShortUrlRequest{ShortBase32: c.Param("short_path")}
+	redirectUrl, err := services.ShortUrlService.GetShortUrlByShortPath(shortUrlRequest.ShortBase32)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	errIncremCount := services.ShortUrlService.IncrementShortUrlCount(short_url_req.ShortBase32)
+	errIncremCount := services.ShortUrlService.IncrementShortUrlCount(shortUrlRequest.ShortBase32)
 	if errIncremCount != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.Redirect(http.StatusPermanentRedirect, redirect_url.Url)
+	c.Redirect(http.StatusPermanentRedirect, redirectUrl.Url)
+}
+
+func GetAll(c *gin.Context) {
+	//shortUrlRequest := shorturl.ShortUrlRequest{ShortBase32: c.Param("short_path")}
+	allUrls, err := services.ShortUrlService.GetAllUrls()
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusOK, allUrls)
 }

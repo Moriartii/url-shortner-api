@@ -20,6 +20,7 @@ type shortUrlServiceInterface interface {
 	CreateShortUrl(string) (*shorturl.ShortUrl, *errors.RestErr)
 	GetShortUrlByShortPath(string) (*shorturl.ShortUrl, *errors.RestErr)
 	IncrementShortUrlCount(string) *errors.RestErr
+	GetAllUrls() ([]shorturl.ShortUrlRequestWithId, *errors.RestErr)
 }
 
 var (
@@ -99,4 +100,14 @@ func (s *shortUrlService) GetShortUrlByShortPath(short_path string) (*shorturl.S
 		return nil, err
 	}
 	return dao, nil
+}
+
+func (s *shortUrlService) GetAllUrls() ([]shorturl.ShortUrlRequestWithId, *errors.RestErr) {
+	//dao := &shorturl.ShortUrl{}
+	var allUrls []shorturl.ShortUrlRequestWithId
+	allUrls, err := shorturl.GetAllUrls(allUrls)
+	if err != nil {
+		return nil, err
+	}
+	return allUrls, nil
 }

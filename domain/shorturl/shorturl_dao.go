@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	queryGetAllUrls             = "SELECT id, url, hash FROM short_urls ;"
 	queryGetShortUrlByHash      = "SELECT id, url, short_base32 FROM short_urls WHERE hash = $1 ;"
 	queryGetShortUrlByBase32    = "SELECT id, url, hash, short_base32_inc, url_http_status, last_check_time, redirect_count FROM short_urls WHERE short_base32 = $1 ;"
 	queryCreateShortUrl         = "INSERT INTO short_urls(url, hash, short_base32, short_base32_inc) VALUES($1, $2, $3, $4) returning id ;"
@@ -24,6 +25,31 @@ type ShortUrlInterface interface {
 	IncrementRedirectCount() *errors.RestErr
 }
 
+func GetAllUrls(a []ShortUrlRequestWithId) ([]ShortUrlRequestWithId, *errors.RestErr) {
+	stmt, err := postgres.Client.Prepare(queryGetAllUrls)
+	if err != nil {
+		logger.Error("Ошибка подготовки запроса в БД", err)
+		return nil, errors.NewInternalServerError("ошибка при работе с БД")
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		logger.Error("Ошибка: ", err)
+		return nil, errors.NewInternalServerError("ошибка при запросе списка url с БД")
+	}
+
+	for rows.Next() {
+		var temp ShortUrlRequestWithId
+		err = rows.Scan(&temp.Id, &temp.Url, &temp.UrlHash)
+		if err != nil {
+			logger.Error("Ошибка: ", err)
+			return nil, errors.NewInternalServerError("ошибка при row.Scan в структуры")
+		}
+		a = append(a, temp)
+	}
+	return a, nil
+}
+
 func (s *ShortUrl) IncrementRedirectCount() *errors.RestErr {
 	stmt, err := postgres.Client.Prepare(queryIncrementRedirectCount)
 	if err != nil {
@@ -33,6 +59,7 @@ func (s *ShortUrl) IncrementRedirectCount() *errors.RestErr {
 	defer stmt.Close()
 	_, sqlErr := stmt.Exec(s.ShortBase32)
 	if sqlErr != nil {
+		logger.Error("Ошибка: ", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	return nil
@@ -52,8 +79,10 @@ func (s *ShortUrl) CreateShortUrl() *errors.RestErr {
 		fmt.Println(err)
 		logger.Error("Ошибка получения информации о ShortUrl из БД", err)
 		if strings.Contains(err.Error(), postgres_utils.ErrorDuplicate) {
+			logger.Error("Ошибка: ", err)
 			return errors.NewAlreadyExistError("ErrorDuplicate")
 		} else {
+			logger.Error("Ошибка: ", err)
 			return errors.NewInternalServerError("ошибка при работе с БД")
 		}
 	}
@@ -75,6 +104,7 @@ func (s *ShortUrl) GetShortUrlByHash() *errors.RestErr {
 		&s.ShortBase32)
 
 	if err != nil {
+		logger.Error("Ошибка: ", err)
 		if strings.Contains(err.Error(), postgres_utils.ErrorNoRows) {
 			return errors.NewNotFoundError("no value")
 		}
@@ -103,6 +133,7 @@ func (s *ShortUrl) GetUrlByShortBase32() *errors.RestErr {
 		&s.RedirectCount)
 
 	if err != nil {
+		logger.Error("Ошибка: ", err)
 		if strings.Contains(err.Error(), postgres_utils.ErrorNoRows) {
 			return errors.NewNotFoundError("no value")
 		}

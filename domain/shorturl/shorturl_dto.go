@@ -16,5 +16,10 @@ type ShortUrl struct {
 type ShortUrlRequest struct {
 	Url         string `json:"url"`
 	UrlHash     string `json:"hash"`
-	ShortBase32 string `json:"short_base32"`
+	ShortBase32 string `json:"short_base32,omitempty"`
+}
+
+type ShortUrlRequestWithId struct {
+	Id int64 `json:"id"`
+	ShortUrlRequest
 }
