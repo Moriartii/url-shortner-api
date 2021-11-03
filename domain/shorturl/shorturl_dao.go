@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	queryGetAllUrls             = "SELECT id, url, hash FROM short_urls ;"
+	queryGetAllUrls             = "SELECT id, url, hash FROM short_urls ORDER BY id ;"
 	queryGetShortUrlByHash      = "SELECT id, url, short_base32 FROM short_urls WHERE hash = $1 ;"
 	queryGetShortUrlByBase32    = "SELECT id, url, hash, short_base32_inc, url_http_status, last_check_time, redirect_count FROM short_urls WHERE short_base32 = $1 ;"
 	queryCreateShortUrl         = "INSERT INTO short_urls(url, hash, short_base32, short_base32_inc) VALUES($1, $2, $3, $4) returning id ;"
