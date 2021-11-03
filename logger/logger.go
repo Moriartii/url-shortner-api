@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	Log *zap.Logger
+	log *zap.Logger
 )
 
 func init() {
@@ -17,7 +17,8 @@ func init() {
 		EncoderConfig: zapcore.EncoderConfig{
 			LevelKey:     "level",
 			TimeKey:      "time",
-			MessageKey:   "msg",
+			NameKey:      "package",
+			MessageKey:   "message",
 			EncodeTime:   zapcore.ISO8601TimeEncoder,
 			EncodeLevel:  zapcore.LowercaseLevelEncoder,
 			EncodeCaller: zapcore.ShortCallerEncoder,
@@ -25,20 +26,22 @@ func init() {
 	}
 
 	var err error
-	if Log, err = logConfig.Build(); err != nil {
+	if log, err = logConfig.Build(); err != nil {
 		panic(err)
 	}
 }
 
-func GetLogger() {}
+func GetLogger() *zap.Logger {
+	return log
+}
 
 func Info(msg string, tags ...zap.Field) {
-	Log.Info(msg, tags...)
-	Log.Sync()
+	log.Info(msg, tags...)
+	log.Sync()
 }
 
 func Error(msg string, err error, tags ...zap.Field) {
 	tags = append(tags, zap.NamedError("error", err))
-	Log.Error(msg, tags...)
-	Log.Sync()
+	log.Error(msg, tags...)
+	log.Sync()
 }

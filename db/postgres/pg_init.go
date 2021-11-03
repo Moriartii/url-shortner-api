@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Moriartii/url-shortner-api/logger"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 	"os"
 )
 
@@ -24,9 +25,14 @@ var (
 	host     = os.Getenv(postgres_users_host)
 	database = os.Getenv(postgres_users_database)
 	sslmode  = os.Getenv(postgres_users_sslmode)
+
+	log *zap.SugaredLogger
 )
 
 func init() {
+
+	log = logger.GetLogger().Named("postgres (pg_init.go)").Sugar()
+
 	datasourceName := fmt.Sprintf("user=%s password=%s host=%s dbname=%s sslmode=%s",
 		username,
 		password,
@@ -44,5 +50,5 @@ func init() {
 	if err = Client.Ping(); err != nil {
 		panic(err)
 	}
-	logger.Info("database successfully configured")
+	log.Infof("[DB-INIT] database successfully configured")
 }
