@@ -1,9 +1,8 @@
 package encode
 
 import (
-	"encoding/base32"
-	//"github.com/gin-gonic/gin"
 	"bytes"
+	"encoding/base32"
 	"io"
 	"io/ioutil"
 )

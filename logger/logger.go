@@ -35,13 +35,4 @@ func GetLogger() *zap.Logger {
 	return log
 }
 
-func Info(msg string, tags ...zap.Field) {
-	log.Info(msg, tags...)
-	log.Sync()
-}
-
-func Error(msg string, err error, tags ...zap.Field) {
-	tags = append(tags, zap.NamedError("error", err))
-	log.Error(msg, tags...)
-	log.Sync()
-}
+//TODO: zap logger add fields like: logger = logger.With(zap.Field{Key: "pid", Type: zapcore.Int64Type, Integer: int64(os.Getpid())})

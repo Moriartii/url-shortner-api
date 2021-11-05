@@ -1,13 +1,13 @@
 package shorturl
 
 import (
-	"fmt"
+	"strings"
+
 	"github.com/Moriartii/url-shortner-api/db/postgres"
 	"github.com/Moriartii/url-shortner-api/logger"
 	"github.com/Moriartii/url-shortner-api/utils/errors"
 	"github.com/Moriartii/url-shortner-api/utils/postgres_utils"
 	"go.uber.org/zap"
-	"strings"
 )
 
 const (
@@ -37,13 +37,13 @@ func GetAllUrls(a []ShortUrlRequestWithId) ([]ShortUrlRequestWithId, *errors.Res
 	log.Info("[DOMAIN] BEGIN CALL: GetAllUrls()")
 	stmt, err := postgres.Client.Prepare(queryGetAllUrls)
 	if err != nil {
-		log.Error("Ошибка подготовки запроса в БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: postgres.Client.Prepare(queryGetAllUrls): %+v", err)
 		return nil, errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	defer stmt.Close()
 	rows, err := stmt.Query()
 	if err != nil {
-		log.Error("Ошибка: ", err)
+		log.Errorf("[DOMAIN] ERROR: %+v", err)
 		return nil, errors.NewInternalServerError("ошибка при запросе списка url с БД")
 	}
 
@@ -51,7 +51,7 @@ func GetAllUrls(a []ShortUrlRequestWithId) ([]ShortUrlRequestWithId, *errors.Res
 		var temp ShortUrlRequestWithId
 		err = rows.Scan(&temp.Id, &temp.Url, &temp.UrlHash)
 		if err != nil {
-			log.Error("Ошибка: ", err)
+			log.Errorf("[DOMAIN] ERROR: %+v", err)
 			return nil, errors.NewInternalServerError("ошибка при row.Scan в структуры")
 		}
 		a = append(a, temp)
@@ -64,13 +64,13 @@ func (s *ShortUrl) IncrementRedirectCount() *errors.RestErr {
 	log.Infof("[DOMAIN] BEGIN CALL: IncrementRedirectCount() with DAO: %+v", s)
 	stmt, err := postgres.Client.Prepare(queryIncrementRedirectCount)
 	if err != nil {
-		log.Error("Ошибка подготовки запроса в БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: postgres.Client.Prepare(queryIncrementRedirectCount): %+v", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	defer stmt.Close()
 	_, sqlErr := stmt.Exec(s.ShortBase32)
 	if sqlErr != nil {
-		log.Error("Ошибка: ", err)
+		log.Errorf("[DOMAIN] ERROR: %+v", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	log.Info("[DOMAIN] SUCCESS called IncrementRedirectCount()")
@@ -81,7 +81,7 @@ func (s *ShortUrl) CreateShortUrl() *errors.RestErr {
 	log.Infof("[DOMAIN] BEGIN CALL: CreateShortUrl() with DAO: %+v", s)
 	stmt, err := postgres.Client.Prepare(queryCreateShortUrl)
 	if err != nil {
-		log.Error("Ошибка подготовки запроса в БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: postgres.Client.Prepare(queryCreateShortUrl): %+v", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	defer stmt.Close()
@@ -89,13 +89,12 @@ func (s *ShortUrl) CreateShortUrl() *errors.RestErr {
 	err = result.Scan(&s.Id)
 
 	if err != nil {
-		fmt.Println(err)
-		log.Error("Ошибка получения информации о ShortUrl из БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: result.Scan(&s.Id): %+v", err)
 		if strings.Contains(err.Error(), postgres_utils.ErrorDuplicate) {
-			log.Errorf("Ошибка_1: %+v", err)
+			log.Errorf("[DOMAIN] ERROR: %+v", err)
 			return errors.NewAlreadyExistError("ErrorDuplicate")
 		} else {
-			log.Errorf("Ошибка_2: %+v", err)
+			log.Errorf("[DOMAIN] ERROR: %+v", err)
 			return errors.NewInternalServerError("ошибка при работе с БД")
 		}
 	}
@@ -107,7 +106,7 @@ func (s *ShortUrl) GetShortUrlByHash() *errors.RestErr {
 	log.Infof("[DOMAIN] BEGIN CALL: GetShortUrlByHash() with DAO: %+v", s)
 	stmt, err := postgres.Client.Prepare(queryGetShortUrlByHash)
 	if err != nil {
-		log.Error("Ошибка подготовки запроса в БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: postgres.Client.Prepare(queryGetShortUrlByHash): %+v", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	defer stmt.Close()
@@ -123,7 +122,6 @@ func (s *ShortUrl) GetShortUrlByHash() *errors.RestErr {
 		if strings.Contains(err.Error(), postgres_utils.ErrorNoRows) {
 			return errors.NewNotFoundError("no value")
 		}
-		//log.Error("Ошибка получения информации о ShortUrl из БД", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	log.Infof("[DOMAIN] SUCCESS called CreateShortUrl() and returned: %+v", s)
@@ -134,7 +132,7 @@ func (s *ShortUrl) GetUrlByShortBase32() *errors.RestErr {
 	log.Infof("[DOMAIN] BEGIN CALL: GetUrlByShortBase32() with DAO: %+v", s)
 	stmt, err := postgres.Client.Prepare(queryGetShortUrlByBase32)
 	if err != nil {
-		log.Error("Ошибка подготовки запроса в БД", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: postgres.Client.Prepare(queryGetShortUrlByBase32): %+v", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	defer stmt.Close()
@@ -150,11 +148,10 @@ func (s *ShortUrl) GetUrlByShortBase32() *errors.RestErr {
 		&s.RedirectCount)
 
 	if err != nil {
-		log.Error("Ошибка: ", err)
+		log.Errorf("[DOMAIN] ERROR when trying to call: result.Scan(&s...): %+v", err)
 		if strings.Contains(err.Error(), postgres_utils.ErrorNoRows) {
 			return errors.NewNotFoundError("no value")
 		}
-		log.Error("Ошибка получения информации о ShortUrl из БД", err)
 		return errors.NewInternalServerError("ошибка при работе с БД")
 	}
 	log.Infof("[DOMAIN] SUCCESS called GetUrlByShortBase32() and returned: %+v", s)

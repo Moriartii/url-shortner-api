@@ -2,6 +2,9 @@ package services
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Moriartii/url-shortner-api/domain/shorturl"
 	"github.com/Moriartii/url-shortner-api/logger"
 	"github.com/Moriartii/url-shortner-api/utils/encode"
@@ -9,8 +12,6 @@ import (
 	"github.com/Moriartii/url-shortner-api/utils/hash"
 	"github.com/Moriartii/url-shortner-api/utils/shufflestring"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
 )
 
 var (

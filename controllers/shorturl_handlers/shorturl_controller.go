@@ -34,7 +34,7 @@ func (i *shortUrlsController) Create(c *gin.Context) {
 	var tempErr error
 	body, c.Request.Body, tempErr = encode.RequestBodyForLogger(c.Request.Body)
 	if tempErr != nil {
-		log.Errorf("[HANDLER] ERROR when trying to call: encode.RequestBodyForLogger(): %+v", tempErr)
+		log.Errorf("[HANDLER] ERROR when trying to call: encode.RequestBodyForLogger(): %s", tempErr)
 		c.JSON(http.StatusBadRequest, tempErr)
 		return
 	}
@@ -44,7 +44,7 @@ func (i *shortUrlsController) Create(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&shortUrlRequest); err != nil {
 		restErr := errors.NewBadRequestError("invalid json body")
-		log.Errorf("[HANDLER] ERROR when trying to call: c.ShouldBindJSON(): %+v", err)
+		log.Errorf("[HANDLER] ERROR when trying to call: c.ShouldBindJSON(): %s", err)
 		c.JSON(restErr.Status, restErr)
 		return
 	}
