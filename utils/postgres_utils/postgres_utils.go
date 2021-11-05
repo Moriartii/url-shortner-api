@@ -1,10 +1,10 @@
 package postgres_utils
 
-import (
+//import (
 //"github.com/Moriartii/url-shortner-api/utils/errors"
 //"github.com/lib/pq"
 //"strings"
-)
+//)
 
 const (
 	ErrorNoRows    = "no rows in result set"
